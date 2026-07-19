@@ -1,0 +1,441 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Student Portal</title>
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+<div id="toastContainer"></div>
+
+
+<!-- ================= LOGIN SCREEN ================= -->
+<div id="loginScreen" class="login-screen">
+  <form id="loginForm" class="login-card">
+    <div class="login-logo">SP</div>
+    <h1>Student Portal</h1>
+    <p class="login-sub">Đăng nhập để xem thông tin học tập</p>
+    <label>Mã sinh viên</label>
+    <input type="text" id="loginStudentCode" placeholder="VD: CD220823" required>
+    <label>Mật khẩu</label>
+    <input type="password" id="loginPassword" placeholder="••••••••" required>
+    <button type="submit">Đăng nhập</button>
+    <p id="loginError" class="login-error"></p>
+  </form>
+</div>
+
+<!-- ================= APP SHELL ================= -->
+<div id="appShell" class="app-shell hidden">
+  <header class="topbar">
+    <div class="topbar-left">
+      <span class="brand">STUDENT<strong>PORTAL</strong></span>
+    </div>
+    <div class="topbar-right">
+      <span id="topUserName">—</span>
+      <button id="logoutBtn" class="btn-ghost">Đăng xuất</button>
+    </div>
+  </header>
+
+  <div class="layout">
+    <aside class="sidebar">
+      <p class="sidebar-title">THÔNG TIN CHUNG</p>
+      <nav>
+        <button class="nav-item active" data-page="profile">👤 Thông tin cá nhân</button>
+        <button class="nav-item" data-page="curriculum">📗 Chương trình đào tạo</button>
+        <button class="nav-item" data-page="grades">📊 Bảng điểm</button>
+        <button class="nav-item" data-page="schedule">📅 Lịch học</button>
+        <button class="nav-item" data-page="registration">📝 Đăng ký lịch học</button>
+        <button class="nav-item" data-page="tuition">💰 Học phí</button>
+      </nav>
+    </aside>
+
+    <main class="content">
+
+      <!-- ---- PAGE: PROFILE ---- -->
+      <section id="page-profile" class="page">
+        <div class="page-header">
+          <span>Thông tin cá nhân</span>
+          <button id="btnOpenEditProfile" class="btn-header">✏️ Sửa thông tin</button>
+        </div>
+        <div id="profileBody" class="card-body loading">Đang tải dữ liệu…</div>
+      </section>
+
+      <!-- ---- PAGE: CURRICULUM ---- -->
+      <section id="page-curriculum" class="page hidden">
+        <div class="page-header">
+          <span>Chương trình đào tạo</span>
+          <button id="btnOpenAddSubject" class="btn-header">+ Thêm môn học</button>
+        </div>
+        <div id="curriculumBody" class="card-body loading">Đang tải dữ liệu…</div>
+      </section>
+
+      <!-- ---- PAGE: GRADES ---- -->
+      <section id="page-grades" class="page hidden">
+        <div class="page-header">
+          <span>Bảng điểm</span>
+          <div class="header-actions">
+            <button id="btnOpenAddGrade" class="btn-header">+ Thêm điểm</button>
+            <button id="btnExportPdf" class="btn-header btn-header-alt">⬇ Xuất PDF</button>
+          </div>
+        </div>
+        <div id="gradesBody" class="card-body loading">Đang tải dữ liệu…</div>
+      </section>
+
+      <!-- ---- PAGE: SCHEDULE ---- -->
+      <section id="page-schedule" class="page hidden">
+        <div class="page-header">
+          <span>Lịch học</span>
+          <button id="btnOpenAddSchedule" class="btn-header">+ Thêm buổi học</button>
+        </div>
+        <div id="scheduleBody" class="card-body loading">Đang tải dữ liệu…</div>
+      </section>
+
+      <!-- ---- PAGE: REGISTRATION (Dang ky lich hoc) ---- -->
+      <section id="page-registration" class="page hidden">
+        <div class="page-header">
+          <span>Đăng ký lịch học</span>
+        </div>
+        <div id="registrationBody" class="card-body loading">Đang tải dữ liệu…</div>
+      </section>
+
+      <!-- ---- PAGE: TUITION ---- -->
+      <section id="page-tuition" class="page hidden">
+        <div class="page-header">
+          <span>Học phí</span>
+          <button id="btnOpenAddTuition" class="btn-header">+ Thêm kỳ học phí</button>
+        </div>
+        <div id="tuitionBody" class="card-body loading">Đang tải dữ liệu…</div>
+      </section>
+
+    </main>
+  </div>
+</div>
+
+<!-- ================= MODAL: THÊM MÔN HỌC ================= -->
+<div id="modalAddSubject" class="modal-overlay hidden">
+  <form id="formAddSubject" class="modal-card">
+    <div class="modal-title">Thêm môn học vào chương trình đào tạo</div>
+
+    <label>Chọn môn có sẵn</label>
+    <select id="selectExistingSubject">
+      <option value="">— Chọn môn học —</option>
+    </select>
+
+    <div class="modal-divider">hoặc tạo môn mới</div>
+
+    <label>Mã môn</label>
+    <input type="text" id="newSubjectCode" placeholder="VD: LMH20">
+    <label>Tên môn</label>
+    <input type="text" id="newSubjectName" placeholder="VD: Lập trình Web">
+    <div class="modal-row">
+      <div>
+        <label>Số TC LT</label>
+        <input type="number" id="newSubjectCreditsLT" value="0" min="0">
+      </div>
+      <div>
+        <label>Số TC TH</label>
+        <input type="number" id="newSubjectCreditsTH" value="0" min="0">
+      </div>
+    </div>
+    <div class="modal-row">
+      <div>
+        <label>Số tiết LT</label>
+        <input type="number" id="newSubjectPeriodsLT" value="0" min="0">
+      </div>
+      <div>
+        <label>Số tiết TH</label>
+        <input type="number" id="newSubjectPeriodsTH" value="0" min="0">
+      </div>
+    </div>
+
+    <label>Kỳ học</label>
+    <input type="number" id="subjectSemester" value="1" min="1" required>
+
+    <p id="addSubjectError" class="modal-error"></p>
+
+    <div class="modal-actions">
+      <button type="button" class="btn-secondary" id="btnCancelAddSubject">Hủy</button>
+      <button type="submit" class="btn-primary">Thêm môn học</button>
+    </div>
+  </form>
+</div>
+
+<!-- ================= MODAL: THÊM ĐIỂM ================= -->
+<div id="modalAddGrade" class="modal-overlay hidden">
+  <form id="formAddGrade" class="modal-card">
+    <div class="modal-title">Thêm điểm môn học</div>
+
+    <label>Môn học</label>
+    <select id="selectGradeSubject" required>
+      <option value="">— Chọn môn học —</option>
+    </select>
+
+    <label>Học kỳ</label>
+    <input type="number" id="gradeSemester" value="1" min="1" required>
+
+    <div class="modal-row">
+      <div>
+        <label>Điểm giữa kỳ LT</label>
+        <input type="number" id="gradeMidtermLT" step="0.1" min="0" max="10">
+      </div>
+      <div>
+        <label>Điểm giữa kỳ TH</label>
+        <input type="number" id="gradeMidtermTH" step="0.1" min="0" max="10">
+      </div>
+    </div>
+    <div class="modal-row">
+      <div>
+        <label>Điểm LT cao nhất</label>
+        <input type="number" id="gradeFinalLT" step="0.1" min="0" max="10">
+      </div>
+      <div>
+        <label>Điểm TH cao nhất</label>
+        <input type="number" id="gradeFinalTH" step="0.1" min="0" max="10">
+      </div>
+    </div>
+
+    <p id="addGradeError" class="modal-error"></p>
+
+    <div class="modal-actions">
+      <button type="button" class="btn-secondary" id="btnCancelAddGrade">Hủy</button>
+      <button type="submit" class="btn-primary">Lưu điểm</button>
+    </div>
+  </form>
+</div>
+
+<!-- ================= MODAL: SỬA KỲ HỌC (CHƯƠNG TRÌNH ĐÀO TẠO) ================= -->
+<div id="modalEditSubject" class="modal-overlay hidden">
+  <form id="formEditSubject" class="modal-card">
+    <div class="modal-title">Sửa kỳ học của môn</div>
+    <input type="hidden" id="editCurriculumItemId">
+    <label>Kỳ học</label>
+    <input type="number" id="editSubjectSemester" min="1" required>
+    <p id="editSubjectError" class="modal-error"></p>
+    <div class="modal-actions">
+      <button type="button" class="btn-secondary" id="btnCancelEditSubject">Hủy</button>
+      <button type="submit" class="btn-primary">Lưu</button>
+    </div>
+  </form>
+</div>
+
+<!-- ================= MODAL: SỬA ĐIỂM ================= -->
+<div id="modalEditGrade" class="modal-overlay hidden">
+  <form id="formEditGrade" class="modal-card">
+    <div class="modal-title">Sửa điểm môn học</div>
+    <input type="hidden" id="editGradeId">
+    <div class="modal-row">
+      <div>
+        <label>Điểm giữa kỳ LT</label>
+        <input type="number" id="editGradeMidtermLT" step="0.1" min="0" max="10">
+      </div>
+      <div>
+        <label>Điểm giữa kỳ TH</label>
+        <input type="number" id="editGradeMidtermTH" step="0.1" min="0" max="10">
+      </div>
+    </div>
+    <div class="modal-row">
+      <div>
+        <label>Điểm LT cao nhất</label>
+        <input type="number" id="editGradeFinalLT" step="0.1" min="0" max="10">
+      </div>
+      <div>
+        <label>Điểm TH cao nhất</label>
+        <input type="number" id="editGradeFinalTH" step="0.1" min="0" max="10">
+      </div>
+    </div>
+    <p id="editGradeError" class="modal-error"></p>
+    <div class="modal-actions">
+      <button type="button" class="btn-secondary" id="btnCancelEditGrade">Hủy</button>
+      <button type="submit" class="btn-primary">Lưu</button>
+    </div>
+  </form>
+</div>
+
+<!-- ================= MODAL: THÊM / SỬA BUỔI HỌC (LỊCH HỌC) ================= -->
+<div id="modalSchedule" class="modal-overlay hidden">
+  <form id="formSchedule" class="modal-card">
+    <div class="modal-title" id="scheduleModalTitle">Thêm buổi học</div>
+    <input type="hidden" id="scheduleId">
+
+    <label>Môn học</label>
+    <select id="scheduleSubject" required>
+      <option value="">— Chọn môn học —</option>
+    </select>
+
+    <label>Ngày học</label>
+    <input type="date" id="scheduleDate" required>
+
+    <div class="modal-row">
+      <div>
+        <label>Tuần</label>
+        <input type="number" id="scheduleWeek" min="1" value="1" required>
+      </div>
+      <div>
+        <label>Học kỳ</label>
+        <input type="number" id="scheduleSemesterInput" min="1" value="1" required>
+      </div>
+    </div>
+
+    <label>Năm học</label>
+    <input type="text" id="scheduleAcademicYear" placeholder="VD: 2024-2025" required>
+
+    <div class="modal-row">
+      <div>
+        <label>Tiết bắt đầu</label>
+        <input type="text" id="scheduleStartPeriod" placeholder="VD: Tiết 1" required>
+      </div>
+      <div>
+        <label>Tiết kết thúc</label>
+        <input type="text" id="scheduleEndPeriod" placeholder="VD: Tiết 4" required>
+      </div>
+    </div>
+
+    <label>Phòng học</label>
+    <input type="text" id="scheduleRoom" placeholder="VD: Nhà A - Phòng 301" required>
+
+    <label>Giảng viên</label>
+    <input type="text" id="scheduleLecturer" placeholder="VD: Nguyễn Văn A" required>
+
+    <p id="scheduleError" class="modal-error"></p>
+
+    <div class="modal-actions">
+      <button type="button" class="btn-secondary" id="btnCancelSchedule">Hủy</button>
+      <button type="submit" class="btn-primary" id="btnSubmitSchedule">Thêm buổi học</button>
+    </div>
+  </form>
+</div>
+
+<!-- ================= MODAL: THÊM / SỬA HỌC PHÍ ================= -->
+<div id="modalTuition" class="modal-overlay hidden">
+  <form id="formTuition" class="modal-card">
+    <div class="modal-title" id="tuitionModalTitle">Thêm kỳ học phí</div>
+    <input type="hidden" id="tuitionId">
+
+    <div class="modal-row">
+      <div>
+        <label>Học kỳ</label>
+        <input type="number" id="tuitionSemester" min="1" value="1" required>
+      </div>
+      <div>
+        <label>Năm học</label>
+        <input type="text" id="tuitionAcademicYear" placeholder="VD: 2024-2025" required>
+      </div>
+    </div>
+
+    <label>Số tiền phải nộp (VNĐ)</label>
+    <input type="number" id="tuitionAmountDue" min="0" step="1000" required>
+
+    <label>Số tiền đã nộp (VNĐ)</label>
+    <input type="number" id="tuitionAmountPaid" min="0" step="1000" value="0" required>
+
+    <label>Hạn nộp</label>
+    <input type="date" id="tuitionDueDate" required>
+
+    <p id="tuitionError" class="modal-error"></p>
+
+    <div class="modal-actions">
+      <button type="button" class="btn-secondary" id="btnCancelTuition">Hủy</button>
+      <button type="submit" class="btn-primary" id="btnSubmitTuition">Thêm kỳ học phí</button>
+    </div>
+  </form>
+</div>
+
+<!-- ================= MODAL: SỬA THÔNG TIN CÁ NHÂN ================= -->
+<div id="modalEditProfile" class="modal-overlay hidden">
+  <form id="formEditProfile" class="modal-card" style="width:480px">
+    <div class="modal-title">Sửa thông tin cá nhân</div>
+
+    <div class="modal-divider">Thông tin cơ bản</div>
+    <div class="modal-row">
+      <div>
+        <label>Ngày sinh</label>
+        <input type="date" id="editDateOfBirth">
+      </div>
+      <div>
+        <label>Nơi sinh</label>
+        <input type="text" id="editPlaceOfBirth" placeholder="VD: Thành phố Hà Nội">
+      </div>
+    </div>
+    <div class="modal-row">
+      <div>
+        <label>CMND/CCCD</label>
+        <input type="text" id="editIdentityCard">
+      </div>
+      <div>
+        <label>Mã thẻ BHYT</label>
+        <input type="text" id="editInsuranceCode">
+      </div>
+    </div>
+    <div class="modal-row">
+      <div>
+        <label>Dân tộc</label>
+        <input type="text" id="editEthnicity" placeholder="VD: Kinh">
+      </div>
+      <div>
+        <label>Trạng thái</label>
+        <select id="editStatus">
+          <option value="Đang học">Đang học</option>
+          <option value="Đã tốt nghiệp">Đã tốt nghiệp</option>
+          <option value="Bảo lưu">Bảo lưu</option>
+          <option value="Thôi học">Thôi học</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="modal-divider">Thông tin liên hệ</div>
+    <label>Số điện thoại</label>
+    <input type="text" id="editPhone" placeholder="VD: 0912345678">
+
+    <div class="modal-row">
+      <div>
+        <label>Email cá nhân</label>
+        <input type="email" id="editPersonalEmail" placeholder="ten@gmail.com">
+      </div>
+      <div>
+        <label>Email sinh viên</label>
+        <input type="email" id="editSchoolEmail" placeholder="ma.sv@student...">
+      </div>
+    </div>
+
+    <label>Hộ khẩu thường trú</label>
+    <input type="text" id="editPermanentAddress" placeholder="Địa chỉ hộ khẩu">
+
+    <label>Địa chỉ bố mẹ đang ở</label>
+    <input type="text" id="editParentAddress" placeholder="Địa chỉ hiện tại của bố mẹ">
+
+    <div class="modal-divider">Thông tin ngân hàng</div>
+    <div class="modal-row">
+      <div>
+        <label>Tên ngân hàng</label>
+        <input type="text" id="editBankName" placeholder="VD: Vietcombank">
+      </div>
+      <div>
+        <label>Số tài khoản</label>
+        <input type="text" id="editBankAccountNumber" placeholder="Số tài khoản">
+      </div>
+    </div>
+    <label>Tên chủ tài khoản</label>
+    <input type="text" id="editBankAccountHolder" placeholder="Tên chủ tài khoản">
+
+    <div class="modal-divider">Liên hệ gia đình</div>
+    <div id="familyContactsList"></div>
+    <button type="button" id="btnAddFamilyContact" class="btn-secondary" style="margin-top:6px">+ Thêm người liên hệ</button>
+
+    <p id="editProfileError" class="modal-error"></p>
+
+    <div class="modal-actions">
+      <button type="button" class="btn-secondary" id="btnCancelEditProfile">Hủy</button>
+      <button type="submit" class="btn-primary">Lưu thay đổi</button>
+    </div>
+  </form>
+</div>
+
+<!-- Thu vien xuat PDF (chi dung o frontend, khong dung cho backend) -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+
+<script src="js/api.js"></script>
+<script src="js/app.js"></script>
+</body>
+</html>
